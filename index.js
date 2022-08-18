@@ -35,34 +35,51 @@ app.use(express.urlencoded({ extended: false }));
 
 app.set("view engine", "ejs");
 
+// app.get("/", (req, res) => {
+//   res.send("hello node");
+// });
+
 app.get("/", (req, res) => {
-  res.send("hello node");
+  res.render("index");
 });
 
 app.get("/write", (req, res) => {
-  res.sendFile(path.join(__dirname, "/public/html/write.html"));
+  // res.sendFile(path.join(__dirname, "/public/html/write.html"));
+  res.render("write");
 });
 
 app.post("/add", (req, res) => {
-  const subject = req.body.subject;
-  const contents = req.body.contents;
-  console.log(subject);
-  console.log(contents);
-  // console.log("write에서 post로 보낸 data 받는 곳");
-  // form data 받기
+  db.collection("counter").findOne({ name: "total" }, (err, result) => {
+    const total = result.totalPost;
+    const subject = req.body.subject;
+    const contents = req.body.contents;
+    console.log(subject);
+    console.log(contents);
+    // console.log("write에서 post로 보낸 data 받는 곳");
+    // form data 받기
 
-  // 2. data push
-  // insert delete update select
-  const insertData = {
-    subject: subject,
-    contents: contents,
-  };
-  db.collection("crud").insertOne(insertData, (err, result) => {
-    // 여기서 'db'는 crudApp을 가리킴.
-    if (err) {
-      console.log(err);
-    }
-    console.log("잘 들어갔음");
+    // 2. data push
+    // insert delete update select
+    const insertData = {
+      no: total + 1,
+      subject: subject,
+      contents: contents,
+    };
+    db.collection("crud").insertOne(insertData, (err, result) => {
+      // 여기서 'db'는 crudApp을 가리킴.
+      db.collection("counter").updateOne({ name: "total" }, { $inc: { totalPost: 1 } });
+      // updateOne({},{}) >> 첫번째 것 {}을 찾아서 두번째 것{}으로 바꿔주는 것! {},{} 2개가 필요하다!
+      if (err) {
+        console.log(err);
+      }
+      // console.log("잘 들어갔음");
+      res.send(`
+      <script>
+        alert("글이 입력되었습니다."); 
+        location.href="/list"
+      </script>
+      `);
+    });
   });
 
   // *db에 저장
@@ -82,23 +99,13 @@ app.post("/add", (req, res) => {
    */
 
   // res.sendFile(path.join(__dirname, "/public/html/result.html"));
-  res.send(`
-  <script>
-    alert("글이 입력되었습니다."); 
-    location.href="/list"
-  </script>
-  `);
   // res.redirect("/list");
   // * res는 한 번 응답을 받으면 그대로 끝이다. 이후 작성된 코드는 작동하지 않는다.
 });
 
+// 불명확한 data를 처리할 때 >> nosql(esp. mongodb) 사용
 app.get("/list", (req, res) => {
-  /*
-   * process
-   * 1. crud에서 data 받기
-   */
-
-  // 1.
+  // crud에서 data 받기
   db.collection("crud")
     .find()
     .toArray((err, result) => {
@@ -109,6 +116,23 @@ app.get("/list", (req, res) => {
       // render >> ejs 필요
     });
   // res.send("list 페이지입니다.");
+});
+
+app.get("/detail/:no", (req, res) => {
+  console.log(req.params.no);
+  const no = parseInt(req.params.no);
+
+  db.collection("crud").findOne({ no: no }, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    if (result) {
+      console.log(result);
+      res.render("detail", { subject: result.subject, contents: result.contents });
+    }
+  });
+
+  // res.render("detail");
 });
 
 app.listen(8099, () => {

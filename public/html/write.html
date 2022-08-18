@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <title>write</title>
+  </head>
+  <body>
+    <!-- data를 보낼 때 post로 보내는 방법 
+    1. ajax
+    2. form
+    -->
+    <form action="/add" method="POST">
+      <!-- form method default는 GET -->
+      <!-- post방식으로 보낼때 name이 중요! -->
+      <input type="text" name="subject" id="subject" />
+      <textarea name="contents" id="contents" cols="30" rows="10"></textarea>
+      <button>send</button>
+    </form>
+  </body>
+  <script>
+    // $.ajax({ url: "/add", method: "post" });
+  </script>
+</html>
